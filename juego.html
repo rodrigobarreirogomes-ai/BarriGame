@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BarriGame</title>
+
+<style>
+
+/* 🌑 FONDO */
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #0f0f0f;
+    color: white;
+    margin: 0;
+    padding: 20px;
+}
+
+/* 🌌 EFECTO SUAVE */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(circle at top, rgba(255,255,255,0.06), transparent 40%),
+        radial-gradient(circle at bottom, rgba(255,255,255,0.04), transparent 50%);
+    pointer-events: none;
+}
+
+/* 🏷️ TÍTULO */
+h1 {
+    font-size: 38px;
+    margin-bottom: 5px;
+}
+
+/* 📝 TEXTO */
+p {
+    opacity: 0.85;
+    margin: 5px;
+}
+
+/* 🔘 BOTONES PRO */
+button {
+    background: white;
+    color: black;
+    border: none;
+    padding: 12px 20px;
+    margin: 8px;
+    border-radius: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+button:hover {
+    transform: translateY(-3px) scale(1.05);
+    background: #f2f2f2;
+}
+
+/* 🎴 CARTAS FIFA */
+.carta {
+    display: inline-block;
+    width: 250px;
+    padding: 28px;
+    margin: 18px;
+    border-radius: 22px;
+
+    background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+    border: 1px solid rgba(255,255,255,0.10);
+
+    color: white;
+    font-size: 19px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: all 0.3s ease;
+
+    box-shadow:
+        0 15px 30px rgba(0,0,0,0.7),
+        inset 0 0 20px rgba(255,255,255,0.02);
+}
+
+.carta:hover {
+    transform: translateY(-10px) scale(1.06);
+    box-shadow:
+        0 25px 50px rgba(0,0,0,0.85),
+        inset 0 0 25px rgba(255,255,255,0.05);
+}
+
+/* 🎮 RESULTADO */
+#resultado {
+    margin-top: 15px;
+    font-size: 20px;
+    min-height: 40px;
+}
+
+/* ✨ ANIMACIONES */
+.correcto {
+    animation: pop 0.5s ease;
+    color: #1ed760;
+}
+
+.incorrecto {
+    animation: shake 0.5s ease;
+    color: #ff4d4d;
+}
+
+@keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    50% { transform: translateX(8px); }
+    75% { transform: translateX(-8px); }
+    100% { transform: translateX(0); }
+}
+
+/* 📱 SELECT */
+select {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+    margin: 10px;
+    background: #1c1c1c;
+    color: white;
+}
+
+</style>
+</head>
+
+<body onclick="iniciarMusica()">
+
+<h1>⚽ BarriGame</h1>
+
+<p>Elige el jugador con mayor valor 💰</p>
+
+<p>🎮 Dificultad:</p>
+<select id="dificultad" onchange="cambiarDificultad()">
+    <option value="facil">🟢 Fácil</option>
+    <option value="medio">🟡 Medio</option>
+    <option value="dificil">🔴 Difícil</option>
+</select>
+
+<div id="opciones"></div>
+
+<p id="resultado"></p>
+<p id="puntos">Puntos: 0</p>
+<p id="vidas">❤️ Vidas: 3</p>
+
+<script>
+
+/* 🔊 SONIDOS */
+let sonidoCorrecto = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a1b6b6.mp3");
+let sonidoIncorrecto = new Audio("https://cdn.pixabay.com/download/audio/2021/08/04/audio_c8a3b0c2b4.mp3");
+let sonidoGameOver = new Audio("https://cdn.pixabay.com/download/audio/2022/03/10/audio_3d7a2c1d5c3.mp3");
+
+/* 🎵 MÚSICA */
+let musicaFondo = new Audio("https://cdn.pixabay.com/download/audio/2022/03/10/audio_3b6f2c7c3d.mp3");
+musicaFondo.loop = true;
+musicaFondo.volume = 0.3;
+
+function iniciarMusica(){
+    if (musicaFondo.paused) musicaFondo.play();
+}
+
+/* ⚽ 200 JUGADORES */
+let jugadores = [
+{nombre:"Lamine Yamal",valor:200},{nombre:"Haaland",valor:200},{nombre:"Mbappé",valor:180},
+{nombre:"Pedri",valor:150},{nombre:"Vinicius Jr",valor:140},{nombre:"Bellingham",valor:130},
+{nombre:"Saka",valor:110},{nombre:"Musiala",valor:100},{nombre:"Rodri",valor:90},
+{nombre:"Hakimi",valor:80},{nombre:"Nico Williams",valor:75},{nombre:"Gavi",valor:90},
+
+{nombre:"Son Heung-min",valor:55},{nombre:"Rodrigo De Paul",valor:55},{nombre:"Tapsoba",valor:55},
+{nombre:"Diomande",valor:55},{nombre:"Lewandowski",valor:50},{nombre:"Griezmann",valor:50},
+{nombre:"Bernardo Silva",valor:50},{nombre:"Sané",valor:50},{nombre:"Goretzka",valor:50},
+{nombre:"Mendy",valor:50},{nombre:"Militão",valor:50},{nombre:"Balde",valor:50},
+{nombre:"Ter Stegen",valor:50},{nombre:"Thuram",valor:50},{nombre:"Pavard",valor:50},
+{nombre:"Donnarumma",valor:50},{nombre:"Lucas Hernández",valor:50},{nombre:"Škriniar",valor:50},
+{nombre:"Martinelli",valor:50},{nombre:"Timber",valor:50},{nombre:"Ben White",valor:50},
+{nombre:"Grealish",valor:50},{nombre:"Akanji",valor:50},{nombre:"Stones",valor:50},
+{nombre:"Gakpo",valor:50},{nombre:"Diogo Jota",valor:50},{nombre:"Robertson",valor:50},
+{nombre:"Højlund",valor:50},{nombre:"Lisandro Martínez",valor:50},{nombre:"Mason Mount",valor:50},
+
+{nombre:"Joan García",valor:45},{nombre:"Adeyemi",valor:45},{nombre:"Frimpong",valor:45},
+{nombre:"Palacios",valor:45},{nombre:"Upamecano",valor:45},{nombre:"Zubimendi",valor:45},
+{nombre:"Merino",valor:45},{nombre:"Brahim Díaz",valor:45},{nombre:"Koopmeiners",valor:45},
+{nombre:"Bremer",valor:45},{nombre:"Chiesa",valor:45},{nombre:"Çalhanoğlu",valor:45},
+{nombre:"Scamacca",valor:45},{nombre:"Barcola",valor:45},{nombre:"Gonçalo Ramos",valor:45},
+{nombre:"Bowen",valor:45},{nombre:"Kudus",valor:45},{nombre:"Gibbs-White",valor:45},
+
+{nombre:"Openda",valor:40},{nombre:"Guirassy",valor:40},{nombre:"Malen",valor:40},
+{nombre:"Alisson",valor:40},{nombre:"Courtois",valor:40},{nombre:"Alaba",valor:40},
+{nombre:"Sancho",valor:40},{nombre:"Pulisic",valor:40},{nombre:"Frattesi",valor:40},
+{nombre:"Kökçü",valor:40}
+];
+
+let puntos = 0;
+let vidas = 3;
+
+let dificultad = "facil";
+let listaActiva = jugadores;
+
+let jugadorA;
+let jugadorB;
+
+/* 🎮 DIFICULTAD */
+function cambiarDificultad(){
+    dificultad = document.getElementById("dificultad").value;
+
+    if(dificultad === "facil") listaActiva = jugadores;
+    if(dificultad === "medio") listaActiva = jugadores.filter(j => j.valor >= 70);
+    if(dificultad === "dificil") listaActiva = jugadores.filter(j => j.valor >= 90);
+
+    nuevaRonda();
+}
+
+/* 🎲 RONDA */
+function nuevaRonda(){
+
+    if (musicaFondo.paused) musicaFondo.play();
+
+    let i1, i2;
+
+    do {
+        i1 = Math.floor(Math.random()*listaActiva.length);
+        i2 = Math.floor(Math.random()*listaActiva.length);
+    } while(i1 === i2 || listaActiva[i1].valor === listaActiva[i2].valor);
+
+    jugadorA = listaActiva[i1];
+    jugadorB = listaActiva[i2];
+
+    document.getElementById("opciones").innerHTML = `
+        <div class="carta" onclick="elegir(0)">${jugadorA.nombre}</div>
+        <div class="carta" onclick="elegir(1)">${jugadorB.nombre}</div>
+    `;
+
+    document.getElementById("resultado").innerHTML = "";
+}
+
+/* 🎯 ELEGIR */
+function elegir(opcion){
+
+    let correcto =
+        (jugadorA.valor > jugadorB.valor && opcion === 0) ||
+        (jugadorB.valor > jugadorA.valor && opcion === 1);
+
+    let resultado = document.getElementById("resultado");
+
+    if(correcto){
+        puntos++;
+        resultado.innerHTML = "✅ Correcto!";
+        resultado.className = "correcto";
+        sonidoCorrecto.play();
+    } else {
+        vidas--;
+        resultado.innerHTML = "❌ Incorrecto";
+        resultado.className = "incorrecto";
+        sonidoIncorrecto.play();
+    }
+
+    document.getElementById("puntos").innerHTML = "Puntos: " + puntos;
+    document.getElementById("vidas").innerHTML = "❤️ Vidas: " + vidas;
+
+    resultado.innerHTML += `
+        <br><br>
+        💰 ${jugadorA.nombre}: €${jugadorA.valor}M<br>
+        💰 ${jugadorB.nombre}: €${jugadorB.valor}M
+    `;
+
+    if(vidas <= 0){
+        musicaFondo.pause();
+        sonidoGameOver.play();
+
+        document.getElementById("opciones").innerHTML =
+            `<button onclick="location.reload()">🔄 Jugar de nuevo</button>`;
+        return;
+    }
+
+    setTimeout(nuevaRonda, 1400);
+}
+
+nuevaRonda();
+
+</script>
+
+</body>
+</html>
